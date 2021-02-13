@@ -13,7 +13,7 @@ def calculate_bmr(weight, height, age, male, activity=2):
     answer += weight*currentCoeffs["weight"]
     answer += height*currentCoeffs["height"]
     answer -= age*currentCoeffs["age"]
-    answer *= activityCoeffs[activity]
+    answer *= activityCoeffs[activity-1]
     return answer
 
 
@@ -33,11 +33,11 @@ while not validGender:
 userWeight = float(input("Please enter your weight in kg: "))
 userHeight = float(input("Please enter your height in cm: "))
 userAge = float(input("Please enter your age in years: "))
-print("Please choose your activity level:")
+print("Please choose your activity level")
 print("1.Sedentary (little or no exercise a week)")
 print("2.Lightly (exercise 1-3 days a week)")
 print("3.Moderate (exercise 3-5 days a week)")
 print("4.Active (exercise 6-7 days a week)")
 print("5.Very Active (hard exercise 6-7 days a week)")
 userActivity = int(input("Your choice: "))
-print("Your daily calories intake is:", calculate_bmr(userWeight, userHeight, userAge, isMale, ))
+print("Your daily calories intake is:", calculate_bmr(userWeight, userHeight, userAge, isMale, userActivity))
