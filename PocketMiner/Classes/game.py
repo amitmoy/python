@@ -34,7 +34,7 @@ class Person:
         self.tools[i]["durability"] -= 5
         self.spend_energy(self.tools[i]["cost"])
         dmg = self.generate_tool_damage(i)
-        if self.tools[i]["durability"] < 0:
+        if self.tools[i]["durability"] <= 0:
             self.tools.pop(i)
         return dmg
 
@@ -58,9 +58,10 @@ class Person:
 
     def show_actions(self):
         i = 1
-        print("Actions")
+        print(BColors.BOLD + BColors.OKGREEN + "Tools" + BColors.ENDC)
         for tool in self.tools:
-            print(str(i), ":", tool)
+            print(BColors.OKGREEN + str(i) + ": " + str(tool["name"]) +
+                  ", Durability: " + str(tool["durability"]) + "/" + str(tool["maxDurability"]) + BColors.ENDC)
             i += 1
 
 
