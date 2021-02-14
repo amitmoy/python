@@ -1,4 +1,5 @@
 import random
+from .Inventory import Tool, Item
 
 
 class BColors:
@@ -13,30 +14,37 @@ class BColors:
 
 
 class Person:
-    def __init__(self, money, items, tools, energy):
+    def __init__(self, money, items, energy, tools):
         self.money = money
         self.items = items
-        self.maxenergy = energy
+        self.maxEnergy = energy
         self.energy = energy
         self.tools = tools
-
-    def generate_tool_damage(self, i):
-        dmgl = int(self.tools[i]["damage"]*0.6)
-        dmgh = int(self.tools[i]["damage"]*1.4)
-        return random.randrange(dmgl, dmgh)
 
     def spend_energy(self, num):
         self.energy -= num
         if self.energy < 0:
             self.energy = 0
 
-    def use_tool(self, i):
-        self.tools[i]["durability"] -= 5
-        self.spend_energy(self.tools[i]["cost"])
-        dmg = self.generate_tool_damage(i)
-        if self.tools[i]["durability"] <= 0:
+    def use_tool(self, i, rock):
+        tool = self.tools[i]
+        if tool.get_cost() > self.energy:
+            return
+        self.spend_energy(tool.get_cost())
+        dmg = tool.use_tool()
+        efficiency = tool.get_efficiency()
+        rock.take_damage(dmg, efficiency)
+        if tool.get_durability() <= 0:
             self.tools.pop(i)
         return dmg
+
+    def show_actions(self):
+        i = 1
+        print(BColors.BOLD + BColors.OKGREEN + "Tools" + BColors.ENDC)
+        for tool in self.tools:
+            print(BColors.OKGREEN + str(i) + ": " + str(tool.get_name()) +
+                  ", Durability: " + str(tool.get_durability()) + "/" + str(tool.get_max_durability()) + BColors.ENDC)
+            i += 1
 
     def get_money(self):
         return self.money
@@ -51,18 +59,10 @@ class Person:
         return self.tools
 
     def get_tool_name(self, i):
-        return self.tools[i]["name"]
+        return self.tools[i].get_name()
 
     def get_tool_cost(self, i):
-        return self.tools[i]["cost"]
-
-    def show_actions(self):
-        i = 1
-        print(BColors.BOLD + BColors.OKGREEN + "Tools" + BColors.ENDC)
-        for tool in self.tools:
-            print(BColors.OKGREEN + str(i) + ": " + str(tool["name"]) +
-                  ", Durability: " + str(tool["durability"]) + "/" + str(tool["maxDurability"]) + BColors.ENDC)
-            i += 1
+        return self.tools[i].get_cost()
 
 
 class Stone:
@@ -74,6 +74,8 @@ class Stone:
         return self.hp
 
     def take_damage(self, damage, efficiency):
+        if self.hp == 0:
+            return
         self.hp -= damage
         self.efficiency += efficiency
         if self.hp < 0:
