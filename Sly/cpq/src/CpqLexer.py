@@ -1,11 +1,12 @@
 from sly import Lexer
+from Utilities import Constants
 
 
 class CpqLexer(Lexer):
 
     tokens = {BREAK, CASE, DEFAULT, ELSE, FLOAT, INT, OUTPUT,
               INT, INPUT, SWITCH, WHILE, IF, RELOP,
-              ADDOP, MULOP, OR, AND, NOT, CAST}
+              ADDOP, MULOP, OR, AND, NOT, CAST, ID, NUM}
 
     ignore = r' \t'
 
@@ -27,13 +28,27 @@ class CpqLexer(Lexer):
     NOT = r'!'
     RELOP = r'(==|!=|<|>|<=|>=)'
     ADDOP = r'(\+|-)'
-    MULOP = r'(\*|/)'
 
     # casting
     @_(r'(static_cast<int>|static_cast<float>)')
     def CAST(self, t):
         if t.value == 'static_cast<int>':
+            t.value = Constants.CastInt
+        else:
+            t.value = Constants.CastFloat
+        return t
 
+    ID = '[a-zA-Z][a-zA-Z0-9]*'
+
+    @_(r'[0-9]+[0-9]*')
+    def NUM(self, t):
+        t.value = {'type': 'float', 'val': float(t.value)}
+        return t
+
+    @_(r'[0-9]+')
+    def NUM(self, t):
+        t.value = {'type': 'int', 'val': int(t.value)}
+        return t
 
     # line number tracking
     @_(r'\n+')
@@ -45,6 +60,8 @@ class CpqLexer(Lexer):
     def ignore_comment(self, t):
         pass
 
+    MULOP = r'(\*|/)'
+
     # handle errors
     def error(self, t):
         print("Illegal character '%s', line number: " % t.value[0], self.lineno)
@@ -52,7 +69,7 @@ class CpqLexer(Lexer):
 
 
 if __name__ == '__main__':
-    data = 'break : \n\n   +=-  */ ||output'
+    data = 'break : \n\n   +=-/* ha _aa  */ || as as9a 9 90 z static_cast<int> output 0.99 2.1 11'
     lexer = CpqLexer()
     for tok in lexer.tokenize(data):
         print(tok)
