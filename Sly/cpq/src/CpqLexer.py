@@ -1,12 +1,13 @@
 from sly import Lexer
-from Utilities import Constants
+from Utilities import Constants, Functions
+import Utilities
 
 
 class CpqLexer(Lexer):
 
     tokens = {BREAK, CASE, DEFAULT, ELSE, FLOAT, INT, OUTPUT,
               INT, INPUT, SWITCH, WHILE, IF, RELOP,
-              ADDOP, MULOP, OR, AND, NOT, CAST, ID, NUM}
+              ADDOP, MULOP, OR, AND, NOT, CAST, ID, NUM, FL}
 
     ignore = r' \t'
 
@@ -40,14 +41,12 @@ class CpqLexer(Lexer):
 
     ID = '[a-zA-Z][a-zA-Z0-9]*'
 
-    @_(r'[0-9]+[0-9]*')
+    @_(r'([0-9]+\.[0-9]*|[0-9]+)')
     def NUM(self, t):
-        t.value = {'type': 'float', 'val': float(t.value)}
-        return t
-
-    @_(r'[0-9]+')
-    def NUM(self, t):
-        t.value = {'type': 'int', 'val': int(t.value)}
+        if Functions.isInt(t.value):
+            t.value = {'type': 'int', 'val': int(t.value)}
+        else:
+            t.value = {'type': 'float', 'val': float(t.value)}
         return t
 
     # line number tracking
@@ -69,7 +68,8 @@ class CpqLexer(Lexer):
 
 
 if __name__ == '__main__':
-    data = 'break : \n\n   +=-/* ha _aa  */ || as as9a 9 90 z static_cast<int> output 0.99 2.1 11'
+    data = 'break : \n\n   +=-/* ha _aa  */ || as as9a 9 90 z static_cast<int> output 0.99 2.1 11 13.0'
     lexer = CpqLexer()
+    print(int('11'))
     for tok in lexer.tokenize(data):
         print(tok)
