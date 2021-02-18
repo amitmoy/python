@@ -1,6 +1,5 @@
 from sly import Lexer
-from Utilities import Constants, Functions
-import Utilities
+from Utilities import Constants, isint
 
 
 class CpqLexer(Lexer):
@@ -35,9 +34,9 @@ class CpqLexer(Lexer):
     @_(r'(static_cast<int>|static_cast<float>)')
     def CAST(self, t):
         if t.value == 'static_cast<int>':
-            t.value = Constants.CastInt
+            t.value = Constants.CAST_INT
         else:
-            t.value = Constants.CastFloat
+            t.value = Constants.CAST_FLOAT
         return t
 
     ID = '[a-zA-Z][a-zA-Z0-9]*'
@@ -45,7 +44,7 @@ class CpqLexer(Lexer):
     # ints and floats (NUM)
     @_(r'([0-9]+\.[0-9]*|[0-9]+)')
     def NUM(self, t):
-        if Functions.isInt(t.value):
+        if isint(t.value):
             t.value = {'type': 'int', 'val': int(t.value)}
         else:
             t.value = {'type': 'float', 'val': float(t.value)}
@@ -67,11 +66,3 @@ class CpqLexer(Lexer):
     def error(self, t):
         print("Illegal character '%s', line number: " % t.value[0], self.lineno)
         self.index += 1
-
-
-if __name__ == '__main__':
-    data = 'break : \n\n   +=-/* ha _aa  */ || as as9a 9 90 z static_cast<int> output 0.99 2.1 11 13.0'
-    lexer = CpqLexer()
-    print(int('11'))
-    for tok in lexer.tokenize(data):
-        print(tok)
