@@ -6,9 +6,9 @@ class CpqLexer(Lexer):
 
     tokens = {BREAK, CASE, DEFAULT, ELSE, FLOAT, INT, OUTPUT,
               INT, INPUT, SWITCH, WHILE, IF, RELOP,
-              ADDOP, MULOP, OR, AND, NOT, CAST, ID, NUM, FL}
+              ADDOP, MULOP, OR, AND, NOT, CAST, ID, NUM}
 
-    ignore = r' \t'
+    ignore = r'\t '
 
     literals = {'(', ')', '{', '}', ',', ':', ';', '='}
 
