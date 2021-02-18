@@ -23,9 +23,13 @@ class CpqLexer(Lexer):
     SWITCH = r'switch'
     WHILE = r'while'
 
+    # line number tracking
+    @_(r'\n+')
+    def ignore_newline(self, t):
+        self.lineno += t.value.count('\n')
 
 if __name__ == '__main__':
-    data = 'break output'
+    data = 'break : \n\noutput'
     lexer = CpqLexer()
     for tok in lexer.tokenize(data):
         print(tok)
