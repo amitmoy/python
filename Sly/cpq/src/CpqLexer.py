@@ -13,6 +13,7 @@ class CpqLexer(Lexer):
 
     literals = {'(', ')', '{', '}', ',', ':', ';', '='}
 
+    # tokens lexical expressions
     BREAK = r'break'
     CASE = r'case'
     DEFAULT = r'default'
@@ -41,6 +42,7 @@ class CpqLexer(Lexer):
 
     ID = '[a-zA-Z][a-zA-Z0-9]*'
 
+    # ints and floats (NUM)
     @_(r'([0-9]+\.[0-9]*|[0-9]+)')
     def NUM(self, t):
         if Functions.isInt(t.value):
