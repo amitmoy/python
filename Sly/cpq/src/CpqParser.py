@@ -54,13 +54,24 @@ class CpqParser(Parser):
        'break_stmt',
        'stmt_block')
     def stmt(self, p):
-        print(p[0])
-        return 'he'
+        return p[0]
 
     @_('ID "=" expression ";"')
     def assignment_stmt(self, p):
-        print(p[0], p[1], p[2], p[3])
-        return 'he'
+        if is_in_dict(self.labelsTable, p[0]):
+            idtype = self.labelsTable[p[0]]
+            if idtype == Constants.FLOAT_TYPE:
+                p[2].type = Constants.FLOAT_TYPE
+            else:
+                if p[2].type != idtype:
+                    eprint('cant cast float to int')
+                    # TODO: handle error
+                    return
+        else:
+            eprint('cant resolve id ' + p[0])
+            # TODO: handle error
+            return
+        return {'id': p[0], 'val': p[2].val, 'type': p[2].type}
 
     @_('INPUT "(" ID ")" ";"')
     def input_stmt(self, p):
@@ -99,13 +110,17 @@ class CpqParser(Parser):
 
     @_('"{" stmtlist "}"')
     def stmt_block(self, p):
-        print(p[0], p[1], p[2])
+        print(p[1])
         return 'he'
 
-    @_('stmtlist stmt',
-       '')
+    @_('stmtlist stmt')
     def stmtlist(self, p):
-        return 'he'
+        p[0].update(p[1])
+        return p[0]
+
+    @_('')
+    def stmtlist(self, p):
+        return {}
 
     @_('boolexpr OR boolterm',
        'boolterm')
@@ -125,17 +140,31 @@ class CpqParser(Parser):
         print(p[0], p[1], p[2], p[3], p[4])
         return 'he'
 
-    @_('expression ADDOP term',
-       'term')
+    @_('expression ADDOP term')
     def expression(self, p):
-        print(p[0])
-        return 'he'
+        if p[0].type != p[2].type:
+            termtype = Constants.FLOAT_TYPE
+        else:
+            termtype = p[0].type
 
-    @_('term MULOP factor',
-       'factor')
+        return Expression(termtype, p[1])
+
+    @_('term')
+    def expression(self, p):
+        return p[0]
+
+    @_('term MULOP factor')
     def term(self, p):
-        print(p[0])
-        return 'he'
+        if p[0].type != p[2].type:
+            termtype = Constants.FLOAT_TYPE
+        else:
+            termtype = p[0].type
+
+        return Expression(termtype, p[1])
+
+    @_('factor')
+    def term(self, p):
+        return p[0]
 
     @_('"(" expression ")"')
     def factor(self, p):
@@ -156,6 +185,8 @@ class CpqParser(Parser):
             idtype = self.labelsTable[p[0]]
         else:
             idtype = Constants.UNKNOWN_TYPE
+            eprint('cant resolve id ' + p[0])
+            # TODO: handle error
 
         return Expression(idtype, p[0])
 
