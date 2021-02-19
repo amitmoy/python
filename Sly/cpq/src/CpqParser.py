@@ -7,7 +7,7 @@ class CpqParser(Parser):
 
     @_('declarations stmt_block')
     def program(self, p):
-        print(p[0], p[1])
+        print('h')
         return 'he'
 
     @_('declarations declaration',
@@ -29,7 +29,7 @@ class CpqParser(Parser):
     @_('idlist "," ID',
        'ID')
     def idlist(self, p):
-        print(p[0], p[1])
+        print(p[0])
         return 'he'
 
     @_('assignment_stmt',
