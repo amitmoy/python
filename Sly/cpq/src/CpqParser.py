@@ -7,13 +7,24 @@ class CpqParser(Parser):
     tokens = CpqLexer.tokens
 
     def __init__(self):
-        super.__init__(self)
+        Parser.__init__(self)
         self.labelsTable = {}
+        self.errors = 0
+        self.labelsCount = 0
+        self.compiledString = ''
+        self.compiledLine = 1
+
+    ###############################################
+    # Parsing Rules
+    ###############################################
 
     @_('declarations stmt_block')
     def program(self, p):
-        print('prog ended')
-        return 'he'
+        if self.errors > 0:
+            eprint(str(self.errors) + ' errors detected')
+        else:
+            eprint('file compiled successfully')
+        return p
 
     @_('declarations declaration',
        '')
@@ -34,9 +45,9 @@ class CpqParser(Parser):
 
     @_('idlist "," ID')
     def idlist(self, p):
-        if is_in_dict(p[0], p[2]):
-            eprint("id " + p[2] + ' is declared 2 times')
-            # TODO: error handle
+        if is_in_dict(p[0], p[2]) or is_in_dict(self.labelsTable, p[2]):
+            eprint(str(p.lineno) + ' : identifier "' + p[2] + '" is declared too many times')
+            self.errors += 1
         else:
             p[0][p[2]] = Constants.UNKNOWN_TYPE
         return p[0]
@@ -64,12 +75,12 @@ class CpqParser(Parser):
                 p[2].type = Constants.FLOAT_TYPE
             else:
                 if p[2].type != idtype:
-                    eprint('cant cast float to int')
-                    # TODO: handle error
+                    eprint(str(p.lineno) + ' : cant cast float to int')
+                    self.errors += 1
                     return
         else:
-            eprint('cant resolve id ' + p[0])
-            # TODO: handle error
+            eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0] + '"')
+            self.errors += 1
             return
         return {'id': p[0], 'val': p[2].val, 'type': p[2].type}
 
@@ -95,13 +106,25 @@ class CpqParser(Parser):
 
     @_('SWITCH "(" expression ")" "{" caselist DEFAULT ":" stmtlist "}"')
     def switch_stmt(self, p):
-        print(p[0], p[1], p[2], p[3], p[4])
+        if p[2].type != Constants.INT_TYPE:
+            eprint(str(p.lineno) + ' : Cant switch on a float type expression')
+            self.errors += 1
+            return
+
         return 'he'
 
-    @_('caselist CASE NUM ":" stmtlist',
-       '')
+    @_('caselist CASE NUM ":" stmtlist')
     def caselist(self, p):
+        if p[2].type != Constants.INT_TYPE:
+            eprint(str(p.lineno) + ' : Cant case a float type expression')
+            self.errors += 1
+            return
+
         return 'he'
+
+    @_('')
+    def caselist(self, p):
+        return
 
     @_('BREAK ";"')
     def break_stmt(self, p):
@@ -143,6 +166,12 @@ class CpqParser(Parser):
     @_('expression ADDOP term')
     def expression(self, p):
         if p[0].type != p[2].type:
+            if p[0].type == Constants.FLOAT_TYPE:
+                # TODO: ITOR p[2].result
+                p[2].type = Constants.FLOAT_TYPE
+            else:
+                # TODO: ITOR p[0].result
+                p[0].type = Constants.FLOAT_TYPE
             termtype = Constants.FLOAT_TYPE
         else:
             termtype = p[0].type
@@ -156,6 +185,12 @@ class CpqParser(Parser):
     @_('term MULOP factor')
     def term(self, p):
         if p[0].type != p[2].type:
+            if p[0].type == Constants.FLOAT_TYPE:
+                # TODO: ITOR p[2].result
+                p[2].type = Constants.FLOAT_TYPE
+            else:
+                # TODO: ITOR p[0].result
+                p[0].type = Constants.FLOAT_TYPE
             termtype = Constants.FLOAT_TYPE
         else:
             termtype = p[0].type
@@ -185,11 +220,26 @@ class CpqParser(Parser):
             idtype = self.labelsTable[p[0]]
         else:
             idtype = Constants.UNKNOWN_TYPE
-            eprint('cant resolve id ' + p[0])
-            # TODO: handle error
+            eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0] + '"')
+            self.errors += 1
 
         return Expression(idtype, p[0])
 
     @_('NUM')
     def factor(self, p):
         return p[0]
+
+    #################################################
+    # Parsing Functions
+    #################################################
+
+    def new_label(self):
+        self.labelsCount += 1
+        return 'L' + str(self.labelsCount)
+
+    def gen(self, string):
+        self.compiledString += string + '\n'
+        self.compiledLine += 1
+
+    def label(self, label):
+        self.gen(label + ':')

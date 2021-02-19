@@ -22,7 +22,8 @@ try:
     lexer = CpqLexer()
     parser = CpqParser()
     # parser.parse(lexer.tokenize("as, ss, ddf : int; \n {}"))
-    parser.parse(lexer.tokenize(cplString))
+    a = parser.parse(lexer.tokenize(cplString))
+    print('its a ',a)
 except Exception as e:
     eprint('could\'nt find or open the file ' + fullInputFileName + '\n' + str(e))
     sys.exit(0)

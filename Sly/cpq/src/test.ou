@@ -1,5 +1,7 @@
-	 testid, testint,		testint2 : int;
+	 hi,
+testid,
+testid , testint,		testint2 : int;
 	testid2,kfloat,kfloat: 	  float;
 {
-testid = 3+4;
+testisd2 = 3+4.21 ;
 }
