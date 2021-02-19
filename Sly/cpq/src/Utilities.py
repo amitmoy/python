@@ -1,14 +1,21 @@
+import sys
+
+
 class Constants:
-    CastInt = 'int_cast'
-    CastFloat = 'float_cast'
+    CAST_INT = 'int_cast'
+    CAST_FLOAT = 'float_cast'
+    INPUT_FILE_ENDING = 'ou'
+    OUTPUT_FILE_ENDING = 'qud'
 
 
-class Functions:
+def isint(num):
+    try:
+        a = int(num)
+    except (TypeError, ValueError):
+        return False
+    else:
+        return True
 
-    def isInt(num):
-        try:
-            a = int(num)
-        except (TypeError, ValueError):
-            return False
-        else:
-            return True
+
+def eprint(error):
+    print(error, file=sys.stderr)
