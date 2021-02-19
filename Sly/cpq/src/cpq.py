@@ -21,7 +21,7 @@ try:
     cplString = open(fullInputFileName, 'r').read()
     lexer = CpqLexer()
     parser = CpqParser()
-    parser.parse(lexer.tokenize("as := 2"))
+    parser.parse(lexer.tokenize("as := 2\n assd:=3"))
     # parser.parse(lexer.tokenize(cplString))
 except Exception as e:
     eprint('could\'nt find or open the file ' + fullInputFileName + '\n' + str(e))
