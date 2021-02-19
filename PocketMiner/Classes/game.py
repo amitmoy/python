@@ -17,7 +17,7 @@ class Person:
     def __init__(self, money, items, energy, tools):
         self.money = money
         self.items = items
-        self.maxEnergy = energy
+        self.maxEnergy = 100
         self.energy = energy
         self.tools = tools
 

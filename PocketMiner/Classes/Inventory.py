@@ -46,3 +46,20 @@ class Tool(Item):
 
     def get_name(self):
         return self.name
+
+
+class Inventory:
+    def __init__(self):
+        self.items = {}
+
+    def add(self, item, ammount):
+        if item in self.items:
+            self.items[item] += ammount
+        else:
+            self.items[item] = ammount
+
+    def get_item(self, item):
+        if item in self.items:
+            self.items[item] -= ammount
+        else:
+            self.items[item] = ammount
