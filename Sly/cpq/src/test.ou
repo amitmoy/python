@@ -1,0 +1,4 @@
+	 testid, testint,		testint2 : int;
+	testid2,kfloat,kfloat: 	  float;
+{
+}

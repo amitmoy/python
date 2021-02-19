@@ -21,8 +21,8 @@ try:
     cplString = open(fullInputFileName, 'r').read()
     lexer = CpqLexer()
     parser = CpqParser()
-    parser.parse(lexer.tokenize("as, ss, ddf : int; \n {}"))
-    # parser.parse(lexer.tokenize(cplString))
+    # parser.parse(lexer.tokenize("as, ss, ddf : int; \n {}"))
+    parser.parse(lexer.tokenize(cplString))
 except Exception as e:
     eprint('could\'nt find or open the file ' + fullInputFileName + '\n' + str(e))
     sys.exit(0)

@@ -1,36 +1,49 @@
 from sly import Parser
 from CpqLexer import CpqLexer
+from Utilities import Constants, eprint, is_in_dict, Expression
 
 
 class CpqParser(Parser):
     tokens = CpqLexer.tokens
 
+    def __init__(self):
+        super.__init__(self)
+        self.labelsTable = {}
+
     @_('declarations stmt_block')
     def program(self, p):
-        print('h')
+        print('prog ended')
         return 'he'
 
     @_('declarations declaration',
        '')
     def declarations(self, p):
-        return 'he'
+        return
 
     @_('idlist ":" type ";"')
     def declaration(self, p):
-        print(p[0], p[1], p[2], p[3])
-        return 'he'
+        for key in p[0]:
+            p[0][key] = p[2]
+        self.labelsTable.update(p[0])
+        return
 
     @_('INT',
        'FLOAT')
     def type(self, p):
-        print(p[0])
-        return 'he'
+        return p[0]
 
-    @_('idlist "," ID',
-       'ID')
+    @_('idlist "," ID')
     def idlist(self, p):
-        print(p[0])
-        return 'he'
+        if is_in_dict(p[0], p[2]):
+            eprint("id " + p[2] + ' is declared 2 times')
+            # TODO: error handle
+        else:
+            p[0][p[2]] = Constants.UNKNOWN_TYPE
+        return p[0]
+
+    @_('ID')
+    def idlist(self, p):
+        return {p[0]: Constants.UNKNOWN_TYPE}
 
     @_('assignment_stmt',
        'input_stmt',
@@ -124,10 +137,28 @@ class CpqParser(Parser):
         print(p[0])
         return 'he'
 
-    @_('"(" expression ")"',
-       'CAST "(" expression ")"',
-       'ID',
-       'NUM')
+    @_('"(" expression ")"')
     def factor(self, p):
-        print(p[0])
-        return 'he'
+        return p[1]
+
+    @_('CAST "(" expression ")"')
+    def factor(self, p):
+        if p[0] == Constants.CAST_INT:
+            casttype = Constants.INT_TYPE
+        else:
+            casttype = Constants.FLOAT_TYPE
+
+        return Expression(casttype, p[2].val)
+
+    @_('ID')
+    def factor(self, p):
+        if is_in_dict(self.labelsTable, p[0]):
+            idtype = self.labelsTable[p[0]]
+        else:
+            idtype = Constants.UNKNOWN_TYPE
+
+        return Expression(idtype, p[0])
+
+    @_('NUM')
+    def factor(self, p):
+        return p[0]

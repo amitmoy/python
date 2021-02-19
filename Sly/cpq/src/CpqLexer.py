@@ -1,5 +1,5 @@
 from sly import Lexer
-from Utilities import Constants, isint
+from Utilities import Constants, is_int, Expression
 
 
 class CpqLexer(Lexer):
@@ -8,7 +8,7 @@ class CpqLexer(Lexer):
               INT, INPUT, SWITCH, WHILE, IF, RELOP,
               ADDOP, MULOP, OR, AND, NOT, CAST, ID, NUM}
 
-    ignore = r'\t '
+    ignore = ' \t'
 
     literals = {'(', ')', '{', '}', ',', ':', ';', '='}
 
@@ -44,10 +44,10 @@ class CpqLexer(Lexer):
     # ints and floats (NUM)
     @_(r'([0-9]+\.[0-9]*|[0-9]+)')
     def NUM(self, t):
-        if isint(t.value):
-            t.value = {'type': 'int', 'val': int(t.value)}
+        if is_int(t.value):
+            t.value = Expression(Constants.INT_TYPE, int(t.value))
         else:
-            t.value = {'type': 'float', 'val': float(t.value)}
+            t.value = Expression(Constants.FLOAT_TYPE, float(t.value))
         return t
 
     # line number tracking
