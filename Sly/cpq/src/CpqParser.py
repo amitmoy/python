@@ -25,7 +25,7 @@ class CpqParser(Parser):
             eprint(str(self.errors) + ' errors detected')
         else:
             eprint('file compiled successfully')
-        return p
+        return self.compiledString
 
     @_('declarations declaration',
        '')
