@@ -230,16 +230,35 @@ class CpqParser(Parser):
     def term(self, p):
         if p[0].type != p[2].type:
             if p[0].type == Constants.FLOAT_TYPE:
-                # TODO: ITOR p[2].result
+                newVar = self.new_var()
+                self.gen('ITOR ' + newVar + ' ' + p[2].result)
                 p[2].type = Constants.FLOAT_TYPE
+                p[2].result = newVar
             else:
-                # TODO: ITOR p[0].result
+                newVar = self.new_var()
+                self.gen('ITOR ' + newVar + ' ' + p[0].result)
                 p[0].type = Constants.FLOAT_TYPE
+                p[0].result = newVar
             termtype = Constants.FLOAT_TYPE
         else:
             termtype = p[0].type
 
-        return Expression(termtype, p[1])
+            # writing code
+        if termtype == Constants.FLOAT_TYPE:
+            if p[1] == '*':
+                command = 'RMLT'
+            else:
+                command = 'RDIV'
+        else:
+            if p[1] == '*':
+                command = 'IMLT'
+            else:
+                command = 'IDIV'
+
+        resvar = self.new_var()
+        self.gen(command + ' ' + resvar + ' ' + p[0].result + ' ' + p[2].result)
+
+        return Expression(termtype, resvar, resvar)
 
     @_('factor')
     def term(self, p):
@@ -256,7 +275,16 @@ class CpqParser(Parser):
         else:
             casttype = Constants.FLOAT_TYPE
 
-        return Expression(casttype, p[2].val)
+        if casttype != p[2].type:
+            if casttype == Constants.FLOAT_TYPE:
+                command = 'ITOR'
+            else:
+                command = 'RTOI'
+            newvar = self.new_var()
+            p[2].type = casttype
+            self.gen(command + ' ' + newvar + ' ' + p[2].result)
+            p[2].result = newvar
+        return p[2]
 
     @_('ID')
     def factor(self, p):
