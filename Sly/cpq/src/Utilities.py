@@ -13,12 +13,14 @@ class Constants:
     UNKNOWN_TYPE = 'unknown'
     INT_TYPE = 'int'
     FLOAT_TYPE = 'float'
+    UNKNOWN_RESULT = 0
 
 
 class Expression:
-    def __init__(self, type, val):
+    def __init__(self, type, val, res = Constants.UNKNOWN_RESULT):
         self.type = type
         self.val = val
+        self.result = res
 
 
 def is_int(num):

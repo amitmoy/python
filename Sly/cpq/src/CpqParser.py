@@ -36,7 +36,7 @@ class CpqParser(Parser):
         for key in p[0]:
             p[0][key] = p[2]
         self.labelsTable.update(p[0])
-        return
+        return p[0]
 
     @_('INT',
        'FLOAT')
@@ -78,6 +78,13 @@ class CpqParser(Parser):
                     eprint(str(p.lineno) + ' : cant cast float to int')
                     self.errors += 1
                     return
+        # writing code
+            if idtype == Constants.FLOAT_TYPE:
+                command = 'RASN'
+            else:
+                command = 'IASN'
+
+            self.gen(command + ' ' + p[0].val + ' ' + p[2].result)
         else:
             eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0] + '"')
             self.errors += 1
