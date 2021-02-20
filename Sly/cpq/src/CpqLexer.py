@@ -39,15 +39,18 @@ class CpqLexer(Lexer):
             t.value = Constants.CAST_FLOAT
         return t
 
-    ID = '[a-zA-Z][a-zA-Z0-9]*'
+    @_(r'[a-zA-Z][a-zA-Z0-9]*')
+    def ID(self, t):
+        t.value = Expression(Constants.UNKNOWN_TYPE, t.value, t.value)
+        return t
 
     # ints and floats (NUM)
     @_(r'([0-9]+\.[0-9]*|[0-9]+)')
     def NUM(self, t):
         if is_int(t.value):
-            t.value = Expression(Constants.INT_TYPE, int(t.value))
+            t.value = Expression(Constants.INT_TYPE, int(t.value), int(t.value))
         else:
-            t.value = Expression(Constants.FLOAT_TYPE, float(t.value))
+            t.value = Expression(Constants.FLOAT_TYPE, float(t.value), float(t.value))
         return t
 
     # line number tracking

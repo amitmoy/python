@@ -1,7 +1,11 @@
 
 
-abadad, a : int;
+abadad, a, b : int;
+x,y : float;
 
 {
-
+	a = 7;
+	b = 3;
+	abadad = a + b;
+	a = x + b;
 }

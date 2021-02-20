@@ -35,8 +35,8 @@ class CpqParser(Parser):
     @_('idlist ":" type ";"')
     def declaration(self, p):
         for key in p[0]:
-            p[0][key] = p[2]
-        self.labelsTable.update(p[0])
+            self.labelsTable[key.val] = p[2]
+            key.type = p[2]
         return p[0]
 
     @_('INT',
@@ -46,16 +46,17 @@ class CpqParser(Parser):
 
     @_('idlist "," ID')
     def idlist(self, p):
-        if is_in_dict(p[0], p[2]) or is_in_dict(self.labelsTable, p[2]):
-            eprint(str(p.lineno) + ' : identifier "' + p[2] + '" is declared too many times')
+        if p[2] in p[0] or is_in_dict(self.labelsTable, p[2].val):
+            eprint(str(p.lineno) + ' : identifier "' + p[2].val + '" is declared too many times')
             self.errors += 1
         else:
-            p[0][p[2]] = Constants.UNKNOWN_TYPE
+            p[2].type = Constants.UNKNOWN_TYPE
+            p[0].append(p[2])
         return p[0]
 
     @_('ID')
     def idlist(self, p):
-        return {p[0]: Constants.UNKNOWN_TYPE}
+        return [p[0]]
 
     @_('assignment_stmt',
        'input_stmt',
@@ -70,10 +71,14 @@ class CpqParser(Parser):
 
     @_('ID "=" expression ";"')
     def assignment_stmt(self, p):
-        if is_in_dict(self.labelsTable, p[0]):
-            idtype = self.labelsTable[p[0]]
+        if is_in_dict(self.labelsTable, p[0].val):
+            idtype = self.labelsTable[p[0].val]
             if idtype == Constants.FLOAT_TYPE:
-                p[2].type = Constants.FLOAT_TYPE
+                if p[2].type != Constants.FLOAT_TYPE:
+                    newvar = self.new_var()
+                    self.gen('RTOI ' + newvar + ' ' + p[2].result)
+                    p[2].type = Constants.FLOAT_TYPE
+                    p[2].result = newvar
             else:
                 if p[2].type != idtype:
                     eprint(str(p.lineno) + ' : cant cast float to int')
@@ -85,12 +90,12 @@ class CpqParser(Parser):
             else:
                 command = 'IASN'
 
-            self.gen(command + ' ' + p[0].val + ' ' + str(p[2].result))
+            self.gen(command + ' ' + str(p[0].val) + ' ' + str(p[2].result))
         else:
-            eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0] + '"')
+            eprint(str(p.lineno) + ' : cant resolve identifier "' + str(p[0].val) + '"')
             self.errors += 1
             return
-        return {'id': p[0], 'val': p[2].val, 'type': p[2].type}
+        return p[0]
 
     @_('INPUT "(" ID ")" ";"')
     def input_stmt(self, p):
@@ -158,12 +163,10 @@ class CpqParser(Parser):
 
     @_('"{" stmtlist "}"')
     def stmt_block(self, p):
-        print(p[1])
         return 'he'
 
     @_('stmtlist stmt')
     def stmtlist(self, p):
-        p[0].update(p[1])
         return p[0]
 
     @_('')
@@ -188,6 +191,7 @@ class CpqParser(Parser):
         print(p[0], p[1], p[2], p[3], p[4])
         return 'he'
 
+    #  ###Expressions###
     @_('expression ADDOP term')
     def expression(self, p):
         if p[0].type != p[2].type:
@@ -288,14 +292,13 @@ class CpqParser(Parser):
 
     @_('ID')
     def factor(self, p):
-        if is_in_dict(self.labelsTable, p[0]):
-            idtype = self.labelsTable[p[0]]
+        if is_in_dict(self.labelsTable, p[0].val):
+            idtype = self.labelsTable[p[0].val]
         else:
             idtype = Constants.UNKNOWN_TYPE
-            eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0] + '"')
+            eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0].val + '"')
             self.errors += 1
-
-        return Expression(idtype, p[0])
+        return Expression(idtype, p[0].val, p[0].result)
 
     @_('NUM')
     def factor(self, p):
@@ -311,8 +314,9 @@ class CpqParser(Parser):
 
     def gen(self, string):
         self.compiledString += string + '\n'
+
         self.compiledLine += 1
 
     def new_var(self):
         self.varsCount += 1
-        return 'tmp' + self.varsCount
+        return 'tmp' + str(self.varsCount)
