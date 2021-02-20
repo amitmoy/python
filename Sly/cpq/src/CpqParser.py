@@ -13,6 +13,7 @@ class CpqParser(Parser):
         self.labelsCount = 0
         self.compiledString = ''
         self.compiledLine = 1
+        self.varsCount = 0
 
     ###############################################
     # Parsing Rules
@@ -84,7 +85,7 @@ class CpqParser(Parser):
             else:
                 command = 'IASN'
 
-            self.gen(command + ' ' + p[0].val + ' ' + p[2].result)
+            self.gen(command + ' ' + p[0].val + ' ' + str(p[2].result))
         else:
             eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0] + '"')
             self.errors += 1
@@ -93,13 +94,30 @@ class CpqParser(Parser):
 
     @_('INPUT "(" ID ")" ";"')
     def input_stmt(self, p):
-        print(p[0], p[1], p[2], p[3], p[4])
-        return 'he'
+        if is_in_dict(self.labelsTable, p[2].val):
+            # writing code
+            if self.labelsTable[p[2].val] == Constants.FLOAT_TYPE:
+                command = 'RINP'
+            else:
+                command = 'IINP'
+
+            self.gen(command + ' ' + p[2].val)
+
+        else:
+            eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0] + '"')
+            self.errors += 1
+        return p[2]
 
     @_('OUTPUT "(" expression ")" ";"')
     def output_stmt(self, p):
-        print(p[0], p[1], p[2], p[3], p[4])
-        return 'he'
+        # writing code
+        if p[2].type == Constants.FLOAT_TYPE:
+            command = 'RPRT'
+        else:
+            command = 'IPRT'
+
+        self.gen(command + ' ' + p[2].result)
+        return p[2].result
 
     @_('IF "(" boolexpr ")" stmt ELSE stmt')
     def if_stmt(self, p):
@@ -183,7 +201,7 @@ class CpqParser(Parser):
         else:
             termtype = p[0].type
 
-        return Expression(termtype, p[1])
+        return Expression(termtype, p[1], resvar)
 
     @_('term')
     def expression(self, p):
@@ -242,11 +260,12 @@ class CpqParser(Parser):
 
     def new_label(self):
         self.labelsCount += 1
-        return 'L' + str(self.labelsCount)
+        return '$' + str(self.labelsCount) + '$'
 
     def gen(self, string):
         self.compiledString += string + '\n'
         self.compiledLine += 1
 
-    def label(self, label):
-        self.gen(label + ':')
+    def new_var(self):
+        self.varsCount += 1
+        return 'tmp' + self.varsCount
