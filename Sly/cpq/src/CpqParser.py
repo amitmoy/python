@@ -9,8 +9,9 @@ class CpqParser(Parser):
     def __init__(self):
         Parser.__init__(self)
         self.labelsTable = {}
+        self.addressTable = {}
         self.errors = 0
-        self.labelsCount = 0
+        self.adressCount = 0
         self.compiledString = ''
         self.compiledLine = 1
         self.varsCount = 0
@@ -21,11 +22,18 @@ class CpqParser(Parser):
 
     @_('declarations stmt_block')
     def program(self, p):
-        if self.errors > 0:
+        if self.errors > 0:  # if any errors
             eprint(str(self.errors) + ' errors detected')
         else:
+            # replacing the addresses symbols with actual line numbers
+            print(self.addressTable)
+            for key in self.addressTable:
+                self.compiledString = self.compiledString.replace(key, str(self.addressTable[key]))
+            self.gen('HALT')
             eprint('file compiled successfully')
-        return self.compiledString
+            return self.compiledString
+
+        return Constants.FAIL  # if there is any errors
 
     @_('declarations declaration',
        '')
@@ -34,6 +42,7 @@ class CpqParser(Parser):
 
     @_('idlist ":" type ";"')
     def declaration(self, p):
+        # insert ids to labelsTable with the right types
         for key in p[0]:
             key.type = p[2]
             self.labelsTable[key.val] = key
@@ -46,17 +55,17 @@ class CpqParser(Parser):
 
     @_('idlist "," ID')
     def idlist(self, p):
-        if p[2] in p[0] or is_in_dict(self.labelsTable, p[2].val):
+        if p[2] in p[0] or is_in_dict(self.labelsTable, p[2].val):  # if ID is already declared in idlist or labelstable
             eprint(str(p.lineno) + ' : identifier "' + p[2].val + '" is declared too many times')
             self.errors += 1
-        else:
+        else:  # else adds ID to idlist
             p[2].type = Constants.UNKNOWN_TYPE
             p[0].append(p[2])
         return p[0]
 
     @_('ID')
     def idlist(self, p):
-        return [p[0]]
+        return [p[0]]  # return single ID list
 
     @_('assignment_stmt',
        'input_stmt',
@@ -69,6 +78,7 @@ class CpqParser(Parser):
     def stmt(self, p):
         return p[0]
 
+    # TODO: write documentation
     @_('ID "=" expression ";"')
     def assignment_stmt(self, p):
         if is_in_dict(self.labelsTable, p[0].val):
@@ -101,23 +111,25 @@ class CpqParser(Parser):
     @_('INPUT "(" ID ")" ";"')
     def input_stmt(self, p):
         if is_in_dict(self.labelsTable, p[2].val):
-            idvar = self.labelsTable[p[2].val]
-            # writing code
+            idVar = self.labelsTable[p[2].val]
+
+            # finding out the right command
             if self.labelsTable[p[2].val].type == Constants.FLOAT_TYPE:
                 command = 'RINP'
             else:
                 command = 'IINP'
 
-            self.gen(command + ' ' + idvar.result)
+            self.gen(command + ' ' + idVar.result)
 
-        else:
+        else:  # ID not found on labelsTable
             eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0] + '"')
             self.errors += 1
         return p[2]
 
     @_('OUTPUT "(" expression ")" ";"')
     def output_stmt(self, p):
-        # writing code
+
+        # finding out the right command
         if p[2].type == Constants.FLOAT_TYPE:
             command = 'RPRT'
         else:
@@ -126,15 +138,38 @@ class CpqParser(Parser):
         self.gen(command + ' ' + p[2].result)
         return p[2].result
 
-    @_('IF "(" boolexpr ")" stmt ELSE stmt')
+    # ###Flow control commands###
+    @_('start_if stmt end_if ELSE getlineno stmt getlineno')
     def if_stmt(self, p):
-        print(p[0], p[1], p[2], p[3], p[4], p[5], p[6])
+        self.addressTable[p[0]] = p[4]
+        self.addressTable[p[2]] = p[6]
+        return
+
+    @_('IF "(" boolexpr ")"')
+    def start_if(self, p):  # generate boolean code and then adds new jump command with new address
+        jumpAddress = self.new_address()
+
+        self.gen('JMPZ ' + jumpAddress + ' ' + p[2])
+        return jumpAddress
+
+    @_('')
+    def end_if(self, p):  # jump to the end of if
+        jumpAddress = self.new_address()
+
+        self.gen('JUMP ' + jumpAddress)
+        return jumpAddress
+
+    @_('start_while stmt getlineno')
+    def while_stmt(self, p):
+        self.gen('JUMP ' + str(p[0]['jumpTo']))
+        self.addressTable[p[0]['addressToFill']] = p[2] + 1
         return 'he'
 
-    @_('WHILE "(" boolexpr ")" stmt')
-    def while_stmt(self, p):
-        print(p[0], p[1], p[2], p[3], p[4])
-        return 'he'
+    @_('WHILE getlineno "(" boolexpr ")"')
+    def start_while(self, p):
+        whileAddress = self.new_address()
+        self.gen('JMPZ ' + whileAddress + ' ' + p[3])
+        return {'jumpTo': p[1], 'addressToFill': whileAddress}
 
     @_('SWITCH "(" expression ")" "{" caselist DEFAULT ":" stmtlist "}"')
     def switch_stmt(self, p):
@@ -163,9 +198,10 @@ class CpqParser(Parser):
         print(p[0], p[1])
         return 'he'
 
+    # ###Statements###
     @_('"{" stmtlist "}"')
     def stmt_block(self, p):
-        return 'he'
+        return p[1]
 
     @_('stmtlist stmt')
     def stmtlist(self, p):
@@ -175,6 +211,7 @@ class CpqParser(Parser):
     def stmtlist(self, p):
         return {}
 
+    # ###Booleans###
     @_('boolexpr OR boolterm')
     def boolexpr(self, p):
         boolres = self.new_var()
@@ -265,7 +302,6 @@ class CpqParser(Parser):
                 command = 'ILSS'
             self.gen(command + ' ' + boolres + ' ' + p[0].result + ' ' + p[2].result)
             return boolres
-
 
     #  ###Expressions###
     @_('expression ADDOP term')
@@ -381,13 +417,19 @@ class CpqParser(Parser):
     def factor(self, p):
         return p[0]
 
+    @_('')
+    def getlineno(self, p):  # return the line number of compiled string
+        return self.compiledLine
+
     #################################################
     # Parsing Functions
     #################################################
 
-    def new_label(self):
-        self.labelsCount += 1
-        return '$' + str(self.labelsCount) + '$'
+    def new_address(self):
+        address = '$' + str(self.adressCount) + '$'
+        self.adressCount += 1
+        self.addressTable[address] = -1
+        return address
 
     def gen(self, string):
         self.compiledString += string + '\n'

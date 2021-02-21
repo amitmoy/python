@@ -14,6 +14,7 @@ class Constants:
     INT_TYPE = 'int'
     FLOAT_TYPE = 'float'
     UNKNOWN_RESULT = 0
+    FAIL = 0
 
 
 class Expression:
