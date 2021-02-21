@@ -35,8 +35,8 @@ class CpqParser(Parser):
     @_('idlist ":" type ";"')
     def declaration(self, p):
         for key in p[0]:
-            self.labelsTable[key.val] = p[2]
             key.type = p[2]
+            self.labelsTable[key.val] = key
         return p[0]
 
     @_('INT',
@@ -72,7 +72,8 @@ class CpqParser(Parser):
     @_('ID "=" expression ";"')
     def assignment_stmt(self, p):
         if is_in_dict(self.labelsTable, p[0].val):
-            idtype = self.labelsTable[p[0].val]
+            idtype = self.labelsTable[p[0].val].type
+            idvar = self.labelsTable[p[0].val]
             if idtype == Constants.FLOAT_TYPE:
                 if p[2].type != Constants.FLOAT_TYPE:
                     newvar = self.new_var()
@@ -90,7 +91,7 @@ class CpqParser(Parser):
             else:
                 command = 'IASN'
 
-            self.gen(command + ' ' + str(p[0].val) + ' ' + str(p[2].result))
+            self.gen(command + ' ' + str(idvar.result) + ' ' + str(p[2].result))
         else:
             eprint(str(p.lineno) + ' : cant resolve identifier "' + str(p[0].val) + '"')
             self.errors += 1
@@ -100,13 +101,14 @@ class CpqParser(Parser):
     @_('INPUT "(" ID ")" ";"')
     def input_stmt(self, p):
         if is_in_dict(self.labelsTable, p[2].val):
+            idvar = self.labelsTable[p[2].val]
             # writing code
-            if self.labelsTable[p[2].val] == Constants.FLOAT_TYPE:
+            if self.labelsTable[p[2].val].type == Constants.FLOAT_TYPE:
                 command = 'RINP'
             else:
                 command = 'IINP'
 
-            self.gen(command + ' ' + p[2].val)
+            self.gen(command + ' ' + idvar.result)
 
         else:
             eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0] + '"')
@@ -293,12 +295,14 @@ class CpqParser(Parser):
     @_('ID')
     def factor(self, p):
         if is_in_dict(self.labelsTable, p[0].val):
-            idtype = self.labelsTable[p[0].val]
+            idtype = self.labelsTable[p[0].val].type
+            idvar = self.labelsTable[p[0].val]
         else:
             idtype = Constants.UNKNOWN_TYPE
             eprint(str(p.lineno) + ' : cant resolve identifier "' + p[0].val + '"')
             self.errors += 1
-        return Expression(idtype, p[0].val, p[0].result)
+            return
+        return idvar
 
     @_('NUM')
     def factor(self, p):
