@@ -10,6 +10,7 @@ class CpqParser(Parser):
         Parser.__init__(self)
         self.labelsTable = {}
         self.addressTable = {}
+        self.switchStack = []
         self.errors = 0
         self.adressCount = 0
         self.compiledString = ''
@@ -171,32 +172,49 @@ class CpqParser(Parser):
         self.gen('JMPZ ' + whileAddress + ' ' + p[3])
         return {'jumpTo': p[1], 'addressToFill': whileAddress}
 
-    @_('SWITCH "(" expression ")" "{" caselist DEFAULT ":" stmtlist "}"')
-    def switch_stmt(self, p):
+    @_('SWITCH "(" expression ")" "{"')
+    def start_switch(self, p):
         if p[2].type != Constants.INT_TYPE:
             eprint(str(p.lineno) + ' : Cant switch on a float type expression')
             self.errors += 1
             return
 
-        return 'he'
+        breakAddress = self.new_address()
+        self.switchStack.append({'address': breakAddress, 'expResult': p[2].result})
 
-    @_('caselist CASE NUM ":" stmtlist')
+        return breakAddress
+
+    @_('start_switch caselist DEFAULT ":" getlineno stmtlist "}"')
+    def switch_stmt(self, p):
+        self.addressTable[p[0]] = p[4]
+        return p[5]
+
+    @_('caselist start_case ":" stmtlist getlineno')
     def caselist(self, p):
-        if p[2].type != Constants.INT_TYPE:
-            eprint(str(p.lineno) + ' : Cant case a float type expression')
-            self.errors += 1
-            return
+        self.addressTable[p[1]] = p[4]
+        return
 
-        return 'he'
+    @_('CASE NUM')
+    def start_case(self, p):
+        expResult = self.switchStack[len(self.switchStack)-1]['expResult']
+        adressToJump = self.new_address()
+        newVar = self.new_var()
+        self.gen('IEQL ' + newVar + ' ' + expResult + ' ' + p[1].result)
+        self.gen('JMPZ ' + adressToJump + ' ' + newVar)
+        return adressToJump
 
     @_('')
     def caselist(self, p):
-        return
+        return None
 
     @_('BREAK ";"')
     def break_stmt(self, p):
-        print(p[0], p[1])
-        return 'he'
+        if len(self.switchStack) < 1:
+            eprint(str(p.lineno) + ' : Break outside a switch statement')
+            self.errors += 1
+        else:  # look whats current switch address
+            self.gen('JUMP ' + self.switchStack[len(self.switchStack)-1]['address'])
+        return
 
     # ###Statements###
     @_('"{" stmtlist "}"')
