@@ -7,5 +7,6 @@ x,y : float;
 	a = 7;
 	b = 3;
 	abadad = a + b;
-	a = x + b;
+	y = x + b;
+	if(1>2) a=5+3; else a=5+3;
 }

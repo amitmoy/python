@@ -175,23 +175,97 @@ class CpqParser(Parser):
     def stmtlist(self, p):
         return {}
 
-    @_('boolexpr OR boolterm',
-       'boolterm')
+    @_('boolexpr OR boolterm')
     def boolexpr(self, p):
-        print(p[0])
-        return 'he'
+        boolres = self.new_var()
+        # if b1+b2 > 0 then b1 = 1 || b2 = 1
+        self.gen('IADD ' + boolres + ' ' + p[0] + ' ' + p[2])
+        self.gen('IGRT ' + boolres + ' ' + boolres + ' ' + '1')
+        return boolres
 
-    @_('boolterm AND boolfactor',
-       'boolfactor')
+    @_('boolterm')
+    def boolexpr(self, p):
+        return p[0]
+
+    @_('boolterm AND boolfactor')
     def boolterm(self, p):
-        print(p[0])
-        return 'he'
+        boolres = self.new_var()
+        # if b1*b2 = 1 then b1=b2=1
+        self.gen('IMLT ' + boolres + ' ' + p[2] + ' ' + p[0])
+        self.gen('IEQL ' + boolres + ' ' + boolres + ' ' + '1')
+        return boolres
 
-    @_('NOT "(" boolexpr ")"',
-       'expression RELOP expression')
+    @_('boolfactor')
+    def boolterm(self, p):
+        return p[0]
+
+    @_('NOT "(" boolexpr ")"')
     def boolfactor(self, p):
-        print(p[0], p[1], p[2], p[3], p[4])
-        return 'he'
+        resvar = self.new_var()
+        self.gen('IEQL ' + resvar + ' ' + p[2] + ' ' + '0')
+        return resvar
+
+    @_('expression RELOP expression')
+    def boolfactor(self, p):
+        # type checking
+        if p[0].type != p[2].type:
+            if p[0].type == Constants.FLOAT_TYPE:
+                newVar = self.new_var()
+                self.gen('ITOR ' + newVar + ' ' + p[2].result)
+                p[2].type = Constants.FLOAT_TYPE
+                p[2].result = newVar
+            else:
+                newVar = self.new_var()
+                self.gen('ITOR ' + newVar + ' ' + p[0].result)
+                p[0].type = Constants.FLOAT_TYPE
+                p[0].result = newVar
+            exptype = Constants.FLOAT_TYPE
+        else:
+            exptype = p[0].type
+
+        boolres = self.new_var()
+        # operation checking
+        if exptype == Constants.FLOAT_TYPE:
+            if p[1] == '<=' or p[1] == '>=':
+                if p[1] == '<=':
+                    command = 'RGRT'
+                elif p[1] == '>=':
+                    command = 'RLSS'
+                self.gen(command + ' ' + boolres + ' ' + p[0].result + ' ' + p[2].result)
+                self.gen('IEQL ' + boolres + ' ' + boolres + ' ' + '0')
+                return boolres
+
+            if p[1] == '==':
+                command = 'REQL'
+            elif p[1] == '!=':
+                command = 'RNQL'
+            elif p[1] == '>':
+                command = 'RGRT'
+            elif p[1] == '<':
+                command = 'RLSS'
+            self.gen(command + ' ' + boolres + ' ' + p[0].result + ' ' + p[2].result)
+            return boolres
+        else:
+            if p[1] == '<=' or p[1] == '>=':
+                if p[1] == '<=':
+                    command = 'IGRT'
+                elif p[1] == '>=':
+                    command = 'ILSS'
+                self.gen(command + ' ' + boolres + ' ' + p[0].result + ' ' + p[2].result)
+                self.gen('IEQL ' + boolres + ' ' + boolres + ' ' + '0')
+                return boolres
+
+            if p[1] == '==':
+                command = 'IEQL'
+            elif p[1] == '!=':
+                command = 'INQL'
+            elif p[1] == '>':
+                command = 'IGRT'
+            elif p[1] == '<':
+                command = 'ILSS'
+            self.gen(command + ' ' + boolres + ' ' + p[0].result + ' ' + p[2].result)
+            return boolres
+
 
     #  ###Expressions###
     @_('expression ADDOP term')
@@ -295,7 +369,6 @@ class CpqParser(Parser):
     @_('ID')
     def factor(self, p):
         if is_in_dict(self.labelsTable, p[0].val):
-            idtype = self.labelsTable[p[0].val].type
             idvar = self.labelsTable[p[0].val]
         else:
             idtype = Constants.UNKNOWN_TYPE

@@ -48,9 +48,9 @@ class CpqLexer(Lexer):
     @_(r'([0-9]+\.[0-9]*|[0-9]+)')
     def NUM(self, t):
         if is_int(t.value):
-            t.value = Expression(Constants.INT_TYPE, int(t.value), int(t.value))
+            t.value = Expression(Constants.INT_TYPE, int(t.value), str(t.value))
         else:
-            t.value = Expression(Constants.FLOAT_TYPE, float(t.value), float(t.value))
+            t.value = Expression(Constants.FLOAT_TYPE, float(t.value), str(t.value))
         return t
 
     # line number tracking
