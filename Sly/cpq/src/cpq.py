@@ -19,11 +19,19 @@ inputFileName = fullInputFileName.replace(expectedEnding, '')
 
 try:
     cplString = open(fullInputFileName, 'r').read()
-    lexer = CpqLexer()
-    parser = CpqParser()
-    # parser.parse(lexer.tokenize("as, ss, ddf : int; \n {}"))
-    a = parser.parse(lexer.tokenize(cplString))
-    print('prog:', '\n' + a)
 except Exception as e:
     eprint('could\'nt find or open the file ' + fullInputFileName + '\n' + str(e))
     sys.exit(0)
+
+try:
+    lexer = CpqLexer()
+    parser = CpqParser()
+    a = parser.parse(lexer.tokenize(cplString))
+except:
+    eprint('Compiling failed')
+
+try:
+    f = open(fullInputFileName+'.'+Constants.OUTPUT_FILE_ENDING, 'w')
+    f.write(a)
+except:
+    eprint('Failed to write compiled file')

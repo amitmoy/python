@@ -27,10 +27,10 @@ class CpqParser(Parser):
             eprint(str(self.errors) + ' errors detected')
         else:
             # replacing the addresses symbols with actual line numbers
-            print(self.addressTable)
             for key in self.addressTable:
                 self.compiledString = self.compiledString.replace(key, str(self.addressTable[key]))
             self.gen('HALT')
+            self.gen('Name: Amit Moyal, Id: 206086365')
             eprint('file compiled successfully')
             return self.compiledString
 
@@ -79,9 +79,9 @@ class CpqParser(Parser):
     def stmt(self, p):
         return p[0]
 
-    # TODO: write documentation
     @_('ID "=" expression ";"')
     def assignment_stmt(self, p):
+        # ID type and existence checking
         if is_in_dict(self.labelsTable, p[0].val):
             idtype = self.labelsTable[p[0].val].type
             idvar = self.labelsTable[p[0].val]
