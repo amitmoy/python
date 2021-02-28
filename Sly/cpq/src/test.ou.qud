@@ -1,0 +1,17 @@
+IADD tmp1 3 4
+IEQL tmp2 tmp1 3
+JMPZ 13 tmp2
+IASN a 3
+IADD tmp3 2 5
+IEQL tmp4 tmp3 4
+JMPZ 9 tmp4
+IASN a 4
+IEQL tmp5 tmp3 5
+JMPZ 13 tmp5
+IASN a 5
+JUMP 13
+IEQL tmp6 tmp3 5
+JMPZ 15 tmp6
+IASN a 2
+HALT
+Name: Amit Moyal, Id: 206086365
