@@ -2,8 +2,8 @@ from camera import Camera, show_image, recognize_circles
 import cv2
 import numpy as np
 
-LOWER_RED = [0, 50, 50]
-UPPER_RED = [5, 255, 255]
+LOWER_RED = [0, 120, 120]
+UPPER_RED = [50, 255, 255]
 
 colorsToCatch = [('red', LOWER_RED, UPPER_RED)]
 camera = Camera(0, colorsToCatch)

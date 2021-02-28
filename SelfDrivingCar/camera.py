@@ -8,7 +8,7 @@ def show_image(frameToShow):
 
 def recognize_circles(frame):
     grayColoredFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    circles = cv2.HoughCircles(grayColoredFrame, cv2.HOUGH_GRADIENT, 1.2, 100, param1=100, param2=30, minRadius=5, maxRadius=60)
+    circles = cv2.HoughCircles(grayColoredFrame, cv2.HOUGH_GRADIENT, 1.1, 150, param1=200, param2=20, minRadius=2, maxRadius=60)
     return circles
 
 
