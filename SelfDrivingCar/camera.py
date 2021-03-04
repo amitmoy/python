@@ -9,14 +9,14 @@ def show_image(frameToShow):
 def recognize_circles(frame):
     grayColoredFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     circles = cv2.HoughCircles(grayColoredFrame, cv2.HOUGH_GRADIENT, 1.1, 150, param1=200, param2=20, minRadius=2, maxRadius=60)
+    res = []
     if circles is not None:
         fixedCircles = np.round(circles[0, :]).astype("int")
-        res = []
 
         for circle in fixedCircles:
             res.append(Circle(circle[0], circle[1], circle[2]))
 
-        return res
+    return res
 
 
 class Camera:
@@ -45,3 +45,4 @@ class Camera:
             return masksDictionary
         else:
             return False
+

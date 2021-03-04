@@ -22,3 +22,10 @@ class Circle:
         dy = y - self.y
         dx = x - self.x
         return math.degrees(math.atan2(dy, dx))
+
+    def get_direction(self, x, y, v):
+        rad = math.radians(self.get_angle(x, y))
+        px = math.sin(rad) * v
+        py = math.cos(rad) * v
+        print(tuple([int(px), int(py)]))
+        return tuple([int(px), int(py)])
