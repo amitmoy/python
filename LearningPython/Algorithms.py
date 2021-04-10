@@ -88,5 +88,27 @@ def StringDecrypt(string, key):
     return res
 
 print(StringEncrypt(string1, string2))
-print(StringDecrypt('Hello', string2))
+print(StringDecrypt('Helko', string2))
 
+
+### Biggest lower and upper case char ###
+def BiggestUpperLower(string):
+    dict = {}
+    biggestIndex = 0
+    for char in string:
+        dict[char] = True
+        if char.islower():
+            opposite = char.upper()
+        else:
+            opposite = char.lower()
+        if opposite in dict:
+            if ord(char.lower()) > biggestIndex:
+                biggestIndex = ord(char.lower())
+    if biggestIndex != 0:
+        return chr(biggestIndex)
+    else:
+        return None
+
+
+print(BiggestUpperLower('AaBCDcE'))
+print(BiggestUpperLower('ABCDE'))
