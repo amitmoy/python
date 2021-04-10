@@ -34,6 +34,23 @@ def BFS(graph, node):
 print(BFS(graph1, 'A'))
 print(BFS(graph1, 'E'))
 
+### DFS ###
+def DFS(graph, node):
+    visited = []
+    DFSIteration(graph, node, visited)
+    return visited
+
+
+def DFSIteration(graph, node, visited):
+    if node not in visited:
+        visited.append(node)
+        for neighbor in graph[node]:
+            DFSIteration(graph, neighbor, visited)
+
+
+print(DFS(graph1, 'A'))
+print(DFS(graph1, 'E'))
+
 ### biggest opposite numbers o(n)###
 
 def FindBiggestOpposite(array):
@@ -72,3 +89,4 @@ def StringDecrypt(string, key):
 
 print(StringEncrypt(string1, string2))
 print(StringDecrypt('Hello', string2))
+
