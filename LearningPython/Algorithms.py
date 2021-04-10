@@ -8,8 +8,14 @@ graph1 = {
     'F': []
 }
 
-### BFS ###
+arr1 = [3, 0, -3, 2, 1, -1]
+arr2 = [2, 3, 4, -2, -5]
+arr3 = [-2, -2, 1, 3, 4]
 
+string1 = 'abcde'
+string2 = 'Helko'
+
+### BFS ###
 def BFS(graph, node):
     visited = []
     queue = []
@@ -27,3 +33,42 @@ def BFS(graph, node):
 
 print(BFS(graph1, 'A'))
 print(BFS(graph1, 'E'))
+
+### biggest opposite numbers o(n)###
+
+def FindBiggestOpposite(array):
+    biggest = -1
+    dict = {}
+    for number in array:
+        dict[number] = True
+        if (-1*number) in dict:
+            if abs(number) > biggest:
+                biggest = abs(number)
+
+    if biggest != -1:
+        return biggest
+    else:
+        return None
+
+
+print(FindBiggestOpposite(arr1))
+print(FindBiggestOpposite(arr2))
+print(FindBiggestOpposite(arr3))
+
+
+### string encrypt and decrypt ###
+def StringEncrypt(string, key):
+    res = ''
+    for char in string:
+        res += key[(ord(char.lower()) - 97)]
+    return res
+
+def StringDecrypt(string, key):
+    res = ''
+    for char in string:
+        index = key.index(char)
+        res += chr(index + 97)
+    return res
+
+print(StringEncrypt(string1, string2))
+print(StringDecrypt('Hello', string2))
