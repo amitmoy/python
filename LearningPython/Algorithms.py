@@ -124,7 +124,25 @@ def MinimumDelitions(string):
             charsDict[char] += 1
 
     timesArray = [0] * len(string)
-    for key in charsDict:
-        timesArray[key] += 1
+    for key in charsDict.keys():
+        timesArray[charsDict[key]] += 1
+
+    i = len(timesArray) - 1
+    while i > 0:
+        while timesArray[i] > 1:
+            j = i - 1
+            while timesArray[j] > 1:
+                j -= 1
+            if j != 0:
+                timesArray[j] += 1
+            timesArray[i] -= 1
+            res+= i-j
+        i-=1
+    return res
+
+print(MinimumDelitions("aaabbbcc"))
+print(MinimumDelitions("aab"))
+print(MinimumDelitions("ceababacb"))
+print(MinimumDelitions("aaabbbcce"))
 
     
