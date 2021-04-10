@@ -112,3 +112,19 @@ def BiggestUpperLower(string):
 
 print(BiggestUpperLower('AaBCDcE'))
 print(BiggestUpperLower('ABCDE'))
+
+### Minimum Delitions ###
+def MinimumDelitions(string):
+    res = 0
+    charsDict = {}
+    for char in string:
+        if char not in charsDict:
+            charsDict[char] = 1
+        else:
+            charsDict[char] += 1
+
+    timesArray = [0] * len(string)
+    for key in charsDict:
+        timesArray[key] += 1
+
+    
